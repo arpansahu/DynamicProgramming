@@ -12,7 +12,7 @@ string  PalindromicLCS(string X,string Y,int m,int n){
     else return  PalindromicLCS(X,Y,m,n-1);
 }
 
-int lengthOFLCSubstring(string X,string Y,int n){
+int lengthOFLCSubsequence(string X,string Y,int n){
     for (int i = 1; i <= n ; ++i) {
         for (int j = 1; j <= n ; ++j) {
             if(X[i - 1] == Y[j - 1]) lookup[i][j] = lookup[i - 1][j - 1] + 1;
@@ -28,7 +28,7 @@ int main()
     string Y = X;
     reverse(Y.begin(),Y.end());
     int m = X.length(),n = Y.length();
-    cout<< lengthOFLCSubstring(X,Y,m)<<endl;
+    cout<< lengthOFLCSubsequence(X,Y,m)<<endl;
     cout<<PalindromicLCS(X,Y,m,n);
     return 0;
 }
