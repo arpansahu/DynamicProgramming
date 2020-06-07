@@ -97,6 +97,6 @@ int main()
     cout << "Knapsack value is " << knapSackMemoization(v, w, n - 1, W,vec)<<endl;
     for(auto i : vec) cout<<i<<" "; cout<<endl;
 
-    knapSackTabulisation(v,w,n-1,W);
+    knapSackTabulisation(v,w,n,W);
     return 0;
 }
