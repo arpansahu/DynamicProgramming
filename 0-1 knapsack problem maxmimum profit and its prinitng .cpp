@@ -1,48 +1,102 @@
-#include <iostream>
-#include<vector>
-#include <limits.h>
-
-
+#include<iostream>
+#include <unordered_map>
+#include <climits>
+#include <vector>
 using namespace std;
 
-template<size_t  n>
-void Knapsack0_1(int (&WeightArray)[n], int (&ProfitArray)[n], int Capacity)
-{
-    int arr[n+1][Capacity + 1];
-    for (int i = 0; i <= n; ++i) {
-        for (int w = 0; w <= Capacity; ++w) {
-            if(i ==0 || w == 0) arr[i][w] = 0;
-            else if(WeightArray[i - 1] <= w ) arr[i][w] = max(arr[i - 1][w], arr[i - 1][w - WeightArray[i - 1]] + ProfitArray[i - 1]);
-            else arr[i][w] = arr[i-1][w];
 
+int knapSackRecursion(int v[],int w[],int n,int capacity,vector<int> &vec){
+    if(n < 0 || capacity == 0) return 0;
+    if(w[n] > capacity) return knapSackRecursion(v,w,n-1,capacity,vec);
+    else{
+        int preincludesize = vec.size();
+        int include = v[n] + knapSackRecursion(v,w,n-1,capacity - w[n],vec);
+        int preexcludesize = vec.size();
+        int exclude = knapSackRecursion(v,w,n-1,capacity,vec);
+        if(include > exclude){
+            if(vec.size() > preexcludesize) vec.erase(vec.begin()+preexcludesize,vec.begin() + vec.size());
+            vec.push_back(v[n]);
+            return include;
+        }
+        else{
+            if(preexcludesize > preincludesize) vec.erase(vec.begin()+preincludesize,vec.begin()+preexcludesize);
+            return exclude;
+        }
+    }
+}
+unordered_map<string,int> lookup;
+
+int knapSackMemoization(int v[],int w[],int n,int capacity,vector<int> & vec){
+    if(n < 0 || capacity == 0) return  0;
+
+    string key = to_string(n) + "|" + to_string(capacity);
+
+    if(lookup.find(key) == lookup.end()){
+
+        if(w[n] > capacity) lookup[key] =  knapSackMemoization(v,w,n-1,capacity,vec);
+        else{
+            int preIncludeSize = vec.size();
+            int include = v[n] + knapSackMemoization(v,w,n-1,capacity - w[n],vec);
+
+            int preExcludeSize = vec.size();
+            int exclude = knapSackMemoization(v,w,n-1,capacity,vec);
+
+
+            if(include > exclude){
+                if(vec.size() > preExcludeSize) vec.erase(vec.begin() + preExcludeSize,vec.begin() + vec.size());
+                vec.push_back(v[n]);
+                lookup[key] = include;
+            }
+            else{
+                if(preExcludeSize > preIncludeSize) vec.erase(vec.begin()+preIncludeSize,vec.begin()+preExcludeSize);
+                lookup[key] =  exclude;
+            }
+        }
+    }
+    return lookup[key];
+}
+
+void knapSackTabulisation(int v[],int w[],int n,int capacity){
+    int lookup[n +1][capacity + 1];
+    for (int i = 0; i <= n ; ++i) {
+        for (int j = 0; j <= capacity ; ++j) {
+            if(i == 0 || j ==0) lookup[i][j] = 0;
+            else if(w[i-1] > j) lookup[i][j] = lookup[i-1][j];
+            else lookup[i][j] = max(lookup[i-1][j],v[i -1] + lookup[i-1][j - w[i-1]]);
         }
     }
 
-    cout <<arr[n][Capacity] <<"\n";
-    int result = arr[n][Capacity];
 
-    //printing the elements which were taken into bag
+    cout<<"Knapsack value is "<<lookup[n][capacity]<<endl;
 
-    for (int j = n; j >0 &&  result > 0 ; j--) {
-        if(result == arr[j-1][Capacity]) continue;
+    int result = lookup[n][capacity];
+    int  cap = capacity;
+
+    for (int i = n; i > 0 && result > 0 ; i--) {
+        if(result == lookup[i - 1][cap]) continue;
         else{
-            cout << WeightArray[j - 1] <<" ";
-            result -= ProfitArray[j - 1];
-            Capacity -= WeightArray[j-1];
+            cout<<v[i - 1]<<" ";
+            result = result - v[i -1];
+            cap = cap - w[i - 1];
         }
-
     }
 
 }
 
-
-// main function
 int main()
 {
-    int val[] = {60, 100, 120};
-    int wt[] = {10, 20, 30};
-    int  W = 50;
-    Knapsack0_1(wt,val,W);
+    int v[] = { 20, 5, 10, 40, 15, 25 };
+    int w[] = {  1, 2,  3,  8,  7, 4 };
+    int W = 10;
+    int n = sizeof(v) / sizeof(v[0]);
+    vector<int> vec;
+    cout << "Knapsack value is " << knapSackRecursion(v, w, n - 1, W,vec)<<endl;
+    for(auto i : vec) cout<<i<<" "; cout<<endl;
 
+    vec.clear();
+    cout << "Knapsack value is " << knapSackMemoization(v, w, n - 1, W,vec)<<endl;
+    for(auto i : vec) cout<<i<<" "; cout<<endl;
+
+    knapSackTabulisation(v,w,n-1,W);
     return 0;
 }
